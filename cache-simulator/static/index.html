@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cache Memory Simulator</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1>🧠 Cache Memory Simulator</h1>
+            <p class="subtitle">Visualize and analyze cache memory behavior in real-time</p>
+        </header>
+        
+        <div class="config-section">
+            <h2>Configuration</h2>
+            <div class="form-group">
+                <label>Mapping Type:</label>
+                <select id="mappingType">
+                    <option value="direct">Direct Mapping</option>
+                    <option value="fully_associative">Fully Associative</option>
+                    <option value="set_associative">Set Associative</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label>Replacement Policy:</label>
+                <select id="replacementPolicy">
+                    <option value="fifo">FIFO</option>
+                    <option value="lru">LRU</option>
+                    <option value="lfu">LFU</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label>Cache Size (bytes):</label>
+                <input type="number" id="cacheSize" value="64" min="1" max="1024">
+            </div>
+            
+            <div class="form-group">
+                <label>Block Size (bytes):</label>
+                <input type="number" id="blockSize" value="4" min="1" max="64">
+            </div>
+            
+            <div class="form-group" id="associativityGroup">
+                <label>Associativity:</label>
+                <input type="number" id="associativity" value="2" min="1" max="16">
+            </div>
+            
+            <button onclick="configureCache()">Configure Cache</button>
+        </div>
+        
+        <div class="simulation-section">
+            <h2>Simulation</h2>
+            <div class="form-group">
+                <label>Memory Address:</label>
+                <input type="number" id="address" value="0" min="0">
+                <button onclick="simulateStep()">Step</button>
+            </div>
+            
+            <div class="form-group">
+                <label>Batch Addresses (comma-separated):</label>
+                <textarea id="batchAddresses" rows="3" placeholder="0,4,8,12,16"></textarea>
+                <button onclick="simulateBatch()">Auto Simulate</button>
+            </div>
+            
+            <button onclick="resetCache()" class="reset-btn">Reset Cache</button>
+        </div>
+        
+        <div class="stats-section">
+            <h2>📊 Performance Metrics</h2>
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon">🎯</div>
+                    <div class="stat-content">
+                        <div class="stat-label">Total Accesses</div>
+                        <div class="stat-value" id="totalAccesses">0</div>
+                    </div>
+                </div>
+                <div class="stat-card hit-card">
+                    <div class="stat-icon">✓</div>
+                    <div class="stat-content">
+                        <div class="stat-label">Hits</div>
+                        <div class="stat-value" id="hits">0</div>
+                    </div>
+                </div>
+                <div class="stat-card miss-card">
+                    <div class="stat-icon">✗</div>
+                    <div class="stat-content">
+                        <div class="stat-label">Misses</div>
+                        <div class="stat-value" id="misses">0</div>
+                    </div>
+                </div>
+                <div class="stat-card ratio-card">
+                    <div class="stat-icon">📈</div>
+                    <div class="stat-content">
+                        <div class="stat-label">Hit Ratio</div>
+                        <div class="stat-value" id="hitRatio">0.00%</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="charts-container">
+                <div class="chart-box">
+                    <h3>Hit/Miss Distribution</h3>
+                    <canvas id="pieChart"></canvas>
+                </div>
+                <div class="chart-box">
+                    <h3>Access History</h3>
+                    <canvas id="lineChart"></canvas>
+                </div>
+            </div>
+        </div>
+        
+        <div class="result-section">
+            <h2>🔍 Last Access Result</h2>
+            <div id="result" class="result-display"></div>
+        </div>
+        
+        <div class="history-section">
+            <h2>📜 Access History</h2>
+            <div class="table-container">
+                <table id="historyTable">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Address</th>
+                            <th>Result</th>
+                            <th>Tag</th>
+                            <th>Set Index</th>
+                            <th>Offset</th>
+                        </tr>
+                    </thead>
+                    <tbody id="historyBody">
+                        <tr>
+                            <td colspan="6" class="empty-state">No access history yet</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        
+        <div class="cache-visual">
+            <h2>💾 Cache State Visualization</h2>
+            <div id="cacheGrid" class="cache-grid-container"></div>
+        </div>
+        
+        <footer class="footer">
+            <p>Built with FastAPI, Python & Chart.js | Cache Memory Simulator v1.0</p>
+        </footer>
+    </div>
+    
+    <script src="app.js"></script>
+</body>
+</html>
