@@ -25,6 +25,16 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Disable caching for static files in production
+@app.middleware("http")
+async def add_no_cache_headers(request: Request, call_next):
+    response = await call_next(request)
+    if request.url.path.startswith("/static") or request.url.path in ["/", "/index.html"]:
+        response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
+        response.headers["Pragma"] = "no-cache"
+        response.headers["Expires"] = "0"
+    return response
+
 cache_sim = CacheSimulator()
 rate_limiter = defaultdict(list)
 RATE_LIMIT = 100
@@ -238,7 +248,7 @@ async def compare_policies(addresses: list[int]):
 
 @app.get("/api/v1/health", response_model=HealthResponse)
 async def health_check():
-    return {"status": "healthy", "version": "1.0.0"}
+    return {"status": "healthy", "version": "2.0.0"}
 
 
 # Mount static files with absolute path
