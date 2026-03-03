@@ -3,152 +3,451 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cache Memory Simulator</title>
+    <title>Advanced Cache Memory Simulator Pro</title>
     <link rel="stylesheet" href="style.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 </head>
 <body>
+    <!-- Navigation Tabs -->
+    <nav class="nav-tabs">
+        <button class="tab-btn active" onclick="switchTab('simulator')">🧠 Simulator</button>
+        <button class="tab-btn" onclick="switchTab('analytics')">📊 Analytics</button>
+        <button class="tab-btn" onclick="switchTab('comparison')">⚖️ Comparison</button>
+        <button class="tab-btn" onclick="switchTab('heatmap')">🔥 Heatmap</button>
+        <button class="tab-btn" onclick="switchTab('prediction')">🔮 Prediction</button>
+    </nav>
+
     <div class="container">
-        <header class="header">
-            <h1>🧠 Cache Memory Simulator</h1>
-            <p class="subtitle">Visualize and analyze cache memory behavior in real-time</p>
-        </header>
-        
-        <div class="config-section">
-            <h2>Configuration</h2>
-            <div class="form-group">
-                <label>Mapping Type:</label>
-                <select id="mappingType">
-                    <option value="direct">Direct Mapping</option>
-                    <option value="fully_associative">Fully Associative</option>
-                    <option value="set_associative">Set Associative</option>
-                </select>
-            </div>
+        <!-- SIMULATOR TAB -->
+        <div id="simulator-tab" class="tab-content active">
+            <header class="header">
+                <h1>🧠 Advanced Cache Memory Simulator Pro</h1>
+                <p class="subtitle">Real-time visualization, analytics, and performance insights</p>
+                <div class="header-stats">
+                    <span id="liveHitRate">Hit Rate: 0%</span>
+                    <span id="liveAMAT">AMAT: 0 cycles</span>
+                    <span id="livePower">Power: 0 units</span>
+                </div>
+            </header>
             
-            <div class="form-group">
-                <label>Replacement Policy:</label>
-                <select id="replacementPolicy">
-                    <option value="fifo">FIFO</option>
-                    <option value="lru">LRU</option>
-                    <option value="lfu">LFU</option>
-                </select>
+            <!-- Quick Actions Bar -->
+            <div class="quick-actions">
+                <button onclick="quickConfig('small')" class="quick-btn">⚡ Small Cache</button>
+                <button onclick="quickConfig('medium')" class="quick-btn">🔥 Medium Cache</button>
+                <button onclick="quickConfig('large')" class="quick-btn">💪 Large Cache</button>
+                <button onclick="generateRandomPattern()" class="quick-btn">🎲 Random Pattern</button>
+                <button onclick="generateSequentialPattern()" class="quick-btn">📈 Sequential</button>
+                <button onclick="generateLoopPattern()" class="quick-btn">🔄 Loop Pattern</button>
             </div>
-            
-            <div class="form-group">
-                <label>Cache Size (bytes):</label>
-                <input type="number" id="cacheSize" value="64" min="1" max="1024">
+
+            <div class="main-grid">
+                <!-- Configuration Panel -->
+                <div class="config-panel card">
+                    <h2>⚙️ Configuration</h2>
+                    <div class="form-group">
+                        <label>Mapping Type:</label>
+                        <select id="mappingType">
+                            <option value="direct">Direct Mapping</option>
+                            <option value="fully_associative">Fully Associative</option>
+                            <option value="set_associative" selected>Set Associative</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Replacement Policy:</label>
+                        <select id="replacementPolicy">
+                            <option value="fifo">FIFO (First In First Out)</option>
+                            <option value="lru" selected>LRU (Least Recently Used)</option>
+                            <option value="lfu">LFU (Least Frequently Used)</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Write Policy:</label>
+                        <select id="writePolicy">
+                            <option value="write_through" selected>Write Through</option>
+                            <option value="write_back">Write Back</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Cache Size (bytes):</label>
+                            <input type="number" id="cacheSize" value="128" min="16" max="2048" step="16">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Block Size (bytes):</label>
+                            <input type="number" id="blockSize" value="8" min="4" max="64" step="4">
+                        </div>
+                    </div>
+                    
+                    <div class="form-group" id="associativityGroup">
+                        <label>Associativity:</label>
+                        <input type="range" id="associativity" value="4" min="1" max="16" step="1" oninput="updateAssocLabel(this.value)">
+                        <span id="assocLabel">4-way</span>
+                    </div>
+                    
+                    <button onclick="configureCache()" class="btn-primary">🚀 Configure Cache</button>
+                    <button onclick="exportConfig()" class="btn-secondary">💾 Export Config</button>
+                </div>
+
+                <!-- Simulation Control -->
+                <div class="simulation-panel card">
+                    <h2>🎮 Simulation Control</h2>
+                    
+                    <div class="access-type-toggle">
+                        <button id="readBtn" class="toggle-btn active" onclick="setAccessType('read')">📖 Read</button>
+                        <button id="writeBtn" class="toggle-btn" onclick="setAccessType('write')">✍️ Write</button>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Memory Address (Decimal):</label>
+                        <div class="input-group">
+                            <input type="number" id="address" value="0" min="0" max="65535">
+                            <button onclick="simulateStep()" class="btn-step">▶️ Step</button>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Hex Address:</label>
+                        <input type="text" id="hexAddress" placeholder="0x0000" oninput="hexToDecimal()">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Batch Addresses (comma-separated):</label>
+                        <textarea id="batchAddresses" rows="3" placeholder="0,8,16,24,32,40,0,8,16"></textarea>
+                        <div class="btn-group">
+                            <button onclick="simulateBatch()" class="btn-primary">⚡ Run Batch</button>
+                            <button onclick="simulateBatchSlow()" class="btn-secondary">🐌 Step-by-Step</button>
+                        </div>
+                    </div>
+                    
+                    <div class="simulation-speed">
+                        <label>Animation Speed:</label>
+                        <input type="range" id="animSpeed" min="100" max="2000" value="500" step="100">
+                        <span id="speedLabel">500ms</span>
+                    </div>
+                    
+                    <button onclick="resetCache()" class="btn-danger">🔄 Reset Cache</button>
+                </div>
             </div>
-            
-            <div class="form-group">
-                <label>Block Size (bytes):</label>
-                <input type="number" id="blockSize" value="4" min="1" max="64">
-            </div>
-            
-            <div class="form-group" id="associativityGroup">
-                <label>Associativity:</label>
-                <input type="number" id="associativity" value="2" min="1" max="16">
-            </div>
-            
-            <button onclick="configureCache()">Configure Cache</button>
-        </div>
-        
-        <div class="simulation-section">
-            <h2>Simulation</h2>
-            <div class="form-group">
-                <label>Memory Address:</label>
-                <input type="number" id="address" value="0" min="0">
-                <button onclick="simulateStep()">Step</button>
-            </div>
-            
-            <div class="form-group">
-                <label>Batch Addresses (comma-separated):</label>
-                <textarea id="batchAddresses" rows="3" placeholder="0,4,8,12,16"></textarea>
-                <button onclick="simulateBatch()">Auto Simulate</button>
-            </div>
-            
-            <button onclick="resetCache()" class="reset-btn">Reset Cache</button>
-        </div>
-        
-        <div class="stats-section">
-            <h2>📊 Performance Metrics</h2>
-            <div class="stats-grid">
-                <div class="stat-card">
-                    <div class="stat-icon">🎯</div>
-                    <div class="stat-content">
-                        <div class="stat-label">Total Accesses</div>
-                        <div class="stat-value" id="totalAccesses">0</div>
+
+            <!-- Real-time Stats Dashboard -->
+            <div class="stats-dashboard card">
+                <h2>📊 Real-Time Performance Dashboard</h2>
+                <div class="stats-grid">
+                    <div class="stat-card primary-card">
+                        <div class="stat-icon">🎯</div>
+                        <div class="stat-content">
+                            <div class="stat-label">Total Accesses</div>
+                            <div class="stat-value" id="totalAccesses">0</div>
+                            <div class="stat-trend" id="accessTrend">—</div>
+                        </div>
+                    </div>
+                    <div class="stat-card success-card">
+                        <div class="stat-icon">✓</div>
+                        <div class="stat-content">
+                            <div class="stat-label">Cache Hits</div>
+                            <div class="stat-value" id="hits">0</div>
+                            <div class="stat-progress"><div id="hitProgress" style="width: 0%"></div></div>
+                        </div>
+                    </div>
+                    <div class="stat-card danger-card">
+                        <div class="stat-icon">✗</div>
+                        <div class="stat-content">
+                            <div class="stat-label">Cache Misses</div>
+                            <div class="stat-value" id="misses">0</div>
+                            <div class="stat-progress"><div id="missProgress" style="width: 0%"></div></div>
+                        </div>
+                    </div>
+                    <div class="stat-card warning-card">
+                        <div class="stat-icon">📈</div>
+                        <div class="stat-content">
+                            <div class="stat-label">Hit Ratio</div>
+                            <div class="stat-value" id="hitRatio">0.00%</div>
+                            <div class="stat-badge" id="performanceBadge">—</div>
+                        </div>
+                    </div>
+                    <div class="stat-card info-card">
+                        <div class="stat-icon">⚡</div>
+                        <div class="stat-content">
+                            <div class="stat-label">AMAT (cycles)</div>
+                            <div class="stat-value" id="amat">0</div>
+                            <div class="stat-detail">Avg Memory Access Time</div>
+                        </div>
+                    </div>
+                    <div class="stat-card purple-card">
+                        <div class="stat-icon">💾</div>
+                        <div class="stat-content">
+                            <div class="stat-label">Cache Utilization</div>
+                            <div class="stat-value" id="utilization">0%</div>
+                            <div class="stat-progress"><div id="utilProgress" style="width: 0%"></div></div>
+                        </div>
+                    </div>
+                    <div class="stat-card orange-card">
+                        <div class="stat-icon">🔥</div>
+                        <div class="stat-content">
+                            <div class="stat-label">Evictions</div>
+                            <div class="stat-value" id="evictions">0</div>
+                            <div class="stat-detail">Block Replacements</div>
+                        </div>
+                    </div>
+                    <div class="stat-card teal-card">
+                        <div class="stat-icon">⚙️</div>
+                        <div class="stat-content">
+                            <div class="stat-label">Power Usage</div>
+                            <div class="stat-value" id="power">0</div>
+                            <div class="stat-detail">Arbitrary Units</div>
+                        </div>
                     </div>
                 </div>
-                <div class="stat-card hit-card">
-                    <div class="stat-icon">✓</div>
-                    <div class="stat-content">
-                        <div class="stat-label">Hits</div>
-                        <div class="stat-value" id="hits">0</div>
-                    </div>
-                </div>
-                <div class="stat-card miss-card">
-                    <div class="stat-icon">✗</div>
-                    <div class="stat-content">
-                        <div class="stat-label">Misses</div>
-                        <div class="stat-value" id="misses">0</div>
-                    </div>
-                </div>
-                <div class="stat-card ratio-card">
-                    <div class="stat-icon">📈</div>
-                    <div class="stat-content">
-                        <div class="stat-label">Hit Ratio</div>
-                        <div class="stat-value" id="hitRatio">0.00%</div>
-                    </div>
-                </div>
             </div>
-            
-            <div class="charts-container">
-                <div class="chart-box">
-                    <h3>Hit/Miss Distribution</h3>
+
+            <!-- Charts Section -->
+            <div class="charts-section">
+                <div class="chart-card card">
+                    <h3>📊 Hit/Miss Distribution</h3>
                     <canvas id="pieChart"></canvas>
                 </div>
-                <div class="chart-box">
-                    <h3>Access History</h3>
+                <div class="chart-card card">
+                    <h3>📈 Access History Timeline</h3>
                     <canvas id="lineChart"></canvas>
+                </div>
+                <div class="chart-card card">
+                    <h3>🎯 Miss Type Classification</h3>
+                    <canvas id="missTypeChart"></canvas>
+                </div>
+                <div class="chart-card card">
+                    <h3>⚡ Performance Over Time</h3>
+                    <canvas id="performanceChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Last Access Result -->
+            <div class="result-panel card">
+                <h2>🔍 Last Access Result</h2>
+                <div id="result" class="result-display">
+                    <p class="empty-state">No access performed yet. Start simulating!</p>
+                </div>
+            </div>
+
+            <!-- Access History Table -->
+            <div class="history-panel card">
+                <div class="history-header">
+                    <h2>📜 Access History</h2>
+                    <div class="history-controls">
+                        <button onclick="clearHistory()" class="btn-small">🗑️ Clear</button>
+                        <button onclick="exportHistory()" class="btn-small">📥 Export CSV</button>
+                        <input type="text" id="historySearch" placeholder="🔍 Search..." oninput="filterHistory()">
+                    </div>
+                </div>
+                <div class="table-container">
+                    <table id="historyTable">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Address</th>
+                                <th>Type</th>
+                                <th>Result</th>
+                                <th>Tag</th>
+                                <th>Set</th>
+                                <th>Offset</th>
+                                <th>Time</th>
+                                <th>Miss Type</th>
+                            </tr>
+                        </thead>
+                        <tbody id="historyBody">
+                            <tr>
+                                <td colspan="9" class="empty-state">No access history yet</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Cache Visualization -->
+            <div class="cache-visual card">
+                <div class="cache-header">
+                    <h2>💾 Cache State Visualization</h2>
+                    <div class="view-toggle">
+                        <button onclick="setCacheView('grid')" class="view-btn active" id="gridViewBtn">🔲 Grid</button>
+                        <button onclick="setCacheView('list')" class="view-btn" id="listViewBtn">📋 List</button>
+                    </div>
+                </div>
+                <div id="cacheGrid" class="cache-grid-container"></div>
+            </div>
+        </div>
+
+        <!-- ANALYTICS TAB -->
+        <div id="analytics-tab" class="tab-content">
+            <div class="analytics-container">
+                <h1>📊 Advanced Analytics & Insights</h1>
+                
+                <div class="analytics-grid">
+                    <div class="analytics-card card">
+                        <h3>🎯 Locality Analysis</h3>
+                        <div class="locality-metrics">
+                            <div class="metric-item">
+                                <span class="metric-label">Temporal Locality:</span>
+                                <div class="metric-bar">
+                                    <div id="temporalBar" class="bar-fill"></div>
+                                </div>
+                                <span id="temporalValue" class="metric-value">0%</span>
+                            </div>
+                            <div class="metric-item">
+                                <span class="metric-label">Spatial Locality:</span>
+                                <div class="metric-bar">
+                                    <div id="spatialBar" class="bar-fill"></div>
+                                </div>
+                                <span id="spatialValue" class="metric-value">0%</span>
+                            </div>
+                        </div>
+                        <p class="metric-description">Higher values indicate better locality of reference</p>
+                    </div>
+
+                    <div class="analytics-card card">
+                        <h3>📉 Miss Classification</h3>
+                        <div class="miss-breakdown">
+                            <div class="miss-item">
+                                <span class="miss-label">🔵 Compulsory Misses:</span>
+                                <span id="compulsoryMisses" class="miss-value">0</span>
+                            </div>
+                            <div class="miss-item">
+                                <span class="miss-label">🟡 Capacity Misses:</span>
+                                <span id="capacityMisses" class="miss-value">0</span>
+                            </div>
+                            <div class="miss-item">
+                                <span class="miss-label">🔴 Conflict Misses:</span>
+                                <span id="conflictMisses" class="miss-value">0</span>
+                            </div>
+                        </div>
+                        <canvas id="missBreakdownChart"></canvas>
+                    </div>
+
+                    <div class="analytics-card card">
+                        <h3>⚡ Performance Metrics</h3>
+                        <div class="perf-metrics">
+                            <div class="perf-item">
+                                <span class="perf-icon">⏱️</span>
+                                <div>
+                                    <div class="perf-label">Avg Access Time</div>
+                                    <div id="avgAccessTime" class="perf-value">0 cycles</div>
+                                </div>
+                            </div>
+                            <div class="perf-item">
+                                <span class="perf-icon">📦</span>
+                                <div>
+                                    <div class="perf-label">Memory Traffic</div>
+                                    <div id="memoryTraffic" class="perf-value">0 bytes</div>
+                                </div>
+                            </div>
+                            <div class="perf-item">
+                                <span class="perf-icon">⚡</span>
+                                <div>
+                                    <div class="perf-label">Power Consumption</div>
+                                    <div id="powerConsumption" class="perf-value">0 units</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="analytics-card card">
+                        <h3>✍️ Write Statistics</h3>
+                        <div class="write-stats">
+                            <div class="write-item">
+                                <span>Write Hits:</span>
+                                <span id="writeHits" class="write-value">0</span>
+                            </div>
+                            <div class="write-item">
+                                <span>Write Misses:</span>
+                                <span id="writeMisses" class="write-value">0</span>
+                            </div>
+                            <div class="write-item">
+                                <span>Write Ratio:</span>
+                                <span id="writeRatio" class="write-value">0%</span>
+                            </div>
+                        </div>
+                        <canvas id="writeChart"></canvas>
+                    </div>
+                </div>
+
+                <div class="insights-panel card">
+                    <h3>💡 AI-Powered Insights & Recommendations</h3>
+                    <div id="insights" class="insights-list"></div>
                 </div>
             </div>
         </div>
-        
-        <div class="result-section">
-            <h2>🔍 Last Access Result</h2>
-            <div id="result" class="result-display"></div>
-        </div>
-        
-        <div class="history-section">
-            <h2>📜 Access History</h2>
-            <div class="table-container">
-                <table id="historyTable">
-                    <thead>
-                        <tr>
-                            <th>#</th>
-                            <th>Address</th>
-                            <th>Result</th>
-                            <th>Tag</th>
-                            <th>Set Index</th>
-                            <th>Offset</th>
-                        </tr>
-                    </thead>
-                    <tbody id="historyBody">
-                        <tr>
-                            <td colspan="6" class="empty-state">No access history yet</td>
-                        </tr>
-                    </tbody>
-                </table>
+
+        <!-- COMPARISON TAB -->
+        <div id="comparison-tab" class="tab-content">
+            <div class="comparison-container">
+                <h1>⚖️ Policy Comparison Tool</h1>
+                <p class="subtitle">Compare different replacement policies on the same access pattern</p>
+                
+                <div class="comparison-input card">
+                    <h3>Test Pattern</h3>
+                    <textarea id="comparisonPattern" rows="4" placeholder="Enter addresses: 0,8,16,24,32,40,0,8,16,24"></textarea>
+                    <button onclick="runComparison()" class="btn-primary">🚀 Run Comparison</button>
+                </div>
+
+                <div id="comparisonResults" class="comparison-results"></div>
             </div>
         </div>
-        
-        <div class="cache-visual">
-            <h2>💾 Cache State Visualization</h2>
-            <div id="cacheGrid" class="cache-grid-container"></div>
+
+        <!-- HEATMAP TAB -->
+        <div id="heatmap-tab" class="tab-content">
+            <div class="heatmap-container">
+                <h1>🔥 Cache Access Heatmap</h1>
+                <p class="subtitle">Visualize cache block access frequency</p>
+                
+                <div class="heatmap-controls card">
+                    <button onclick="refreshHeatmap()" class="btn-primary">🔄 Refresh</button>
+                    <select id="heatmapMetric" onchange="refreshHeatmap()">
+                        <option value="frequency">Access Frequency</option>
+                        <option value="dirty">Dirty Blocks</option>
+                    </select>
+                </div>
+
+                <div id="heatmapGrid" class="heatmap-grid card"></div>
+                <div class="heatmap-legend">
+                    <span>Low</span>
+                    <div class="legend-gradient"></div>
+                    <span>High</span>
+                </div>
+            </div>
         </div>
-        
+
+        <!-- PREDICTION TAB -->
+        <div id="prediction-tab" class="tab-content">
+            <div class="prediction-container">
+                <h1>🔮 Access Pattern Prediction</h1>
+                <p class="subtitle">AI-powered next address prediction based on access patterns</p>
+                
+                <div class="prediction-panel card">
+                    <h3>📊 Recent Access Pattern</h3>
+                    <div id="recentPattern" class="pattern-display"></div>
+                    
+                    <div class="prediction-result">
+                        <h3>🎯 Predicted Next Access</h3>
+                        <div id="predictedAddress" class="predicted-value">—</div>
+                        <div id="predictionConfidence" class="confidence-badge">—</div>
+                    </div>
+                    
+                    <button onclick="getPrediction()" class="btn-primary">🔮 Get Prediction</button>
+                    <button onclick="testPrediction()" class="btn-secondary">✅ Test Prediction</button>
+                </div>
+
+                <div class="pattern-analysis card">
+                    <h3>📈 Pattern Analysis</h3>
+                    <canvas id="patternChart"></canvas>
+                </div>
+            </div>
+        </div>
+
         <footer class="footer">
-            <p>Built with FastAPI, Python & Chart.js | Cache Memory Simulator v1.0</p>
+            <p>🚀 Advanced Cache Memory Simulator Pro v2.0 | Built with FastAPI, Python & Chart.js</p>
+            <p>💡 Features: Real-time Analytics • AI Predictions • Policy Comparison • Heatmaps • Performance Insights</p>
         </footer>
     </div>
     
