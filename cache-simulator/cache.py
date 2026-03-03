@@ -18,7 +18,6 @@ class CacheBlock:
 class CacheSimulator:
     def __init__(self):
         self.configured = False
-        self.reset_stats()
         self.access_history = deque(maxlen=100)  # Last 100 accesses
         self.write_policy = "write_through"  # write_through or write_back
         self.write_misses = 0
@@ -33,6 +32,7 @@ class CacheSimulator:
             "memory_traffic": 0,
             "power_consumption": 0
         }
+        self.reset_stats()
 
     def configure(self, mapping_type: str, replacement_policy: str, 
                   cache_size: int, block_size: int, associativity: int = 1,
