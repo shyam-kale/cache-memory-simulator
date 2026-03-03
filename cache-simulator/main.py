@@ -5,6 +5,7 @@ from fastapi.responses import JSONResponse
 import logging
 import time
 from collections import defaultdict
+from pathlib import Path
 from cache import CacheSimulator
 from schemas import (
     ConfigRequest, SimulateRequest, BatchRequest,
@@ -125,7 +126,9 @@ async def health_check():
     return {"status": "healthy", "version": "1.0.0"}
 
 
-app.mount("/", StaticFiles(directory="static", html=True), name="static")
+# Mount static files with absolute path
+static_dir = Path(__file__).parent / "static"
+app.mount("/", StaticFiles(directory=str(static_dir), html=True), name="static")
 
 
 if __name__ == "__main__":
